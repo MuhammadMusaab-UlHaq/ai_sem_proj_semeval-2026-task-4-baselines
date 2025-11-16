@@ -24,8 +24,8 @@ jobs:
         run: |
           python assignment_1/assignment_1_compare.py
 
-      - name: Upload plots
+      - name: Upload plots (PDFs)
         uses: actions/upload-artifact@v4
         with:
-          name: assignment-1-plots
-          path: reports/assignment_1/*.png
+          name: assignment-1-plots-pdf
+          path: reports/assignment_1/plots/*.pdf

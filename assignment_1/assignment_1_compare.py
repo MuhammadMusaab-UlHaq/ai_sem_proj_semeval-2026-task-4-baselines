@@ -14,16 +14,25 @@ It auto-detects the data files in the repository's `data/` folder by default.
 from pathlib import Path
 import json
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 import csv
 import statistics
 import sys
+
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except Exception:
+    MATPLOTLIB_AVAILABLE = False
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 OUT_DIR = ROOT / "reports" / "assignment_1"
+PLOT_DIR = OUT_DIR / "plots"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def read_jsonl(path):
@@ -48,7 +57,7 @@ def ngrams(tokens, n):
     return zip(*(tokens[i:] for i in range(n)))
 
 
-def analyze_texts(texts):
+def analyze_texts(texts, top_k=50):
     tokens_per = []
     vocab = Counter()
     uni = Counter()
@@ -68,20 +77,19 @@ def analyze_texts(texts):
         "median_tokens": statistics.median(tokens_per) if tokens_per else 0,
         "stdev_tokens": statistics.pstdev(tokens_per) if tokens_per else 0,
         "vocab_size": len(vocab),
+        "tokens_per": tokens_per,
     }
     summary.update({
-        "top_unigrams": uni.most_common(30),
-        "top_bigrams": bi.most_common(30),
-        "top_trigrams": tri.most_common(30),
+        "top_unigrams": uni.most_common(top_k),
+        "top_bigrams": bi.most_common(top_k),
+        "top_trigrams": tri.most_common(top_k),
     })
     return summary
 
 
 def write_summary_csv(prefix, stats):
     out = OUT_DIR / f"{prefix}_summary.csv"
-    rows = [
-        ["metric", "value"]
-    ]
+    rows = [["metric", "value"]]
     rows.append(["count_texts", stats["count_texts"]])
     rows.append(["avg_tokens", stats["avg_tokens"]])
     rows.append(["median_tokens", stats["median_tokens"]])
@@ -91,7 +99,6 @@ def write_summary_csv(prefix, stats):
         writer = csv.writer(f)
         writer.writerows(rows)
 
-    # write top ngrams separately
     def write_ngrams(name, items):
         p = OUT_DIR / f"{prefix}_{name}.csv"
         with open(p, "w", newline='', encoding="utf-8") as g:
@@ -106,7 +113,6 @@ def write_summary_csv(prefix, stats):
 
 
 def analyze_human_dev(path):
-    # dev format has text_a, text_b, text_a_is_closer
     texts = []
     label_counts = Counter()
     records = list(read_jsonl(path))
@@ -125,17 +131,48 @@ def analyze_human_dev(path):
 
 
 def analyze_synthetic(path):
-    # synthetic format variety: many files use anchor_story + similar+dissimilar
     texts = []
     records = 0
     for r in read_jsonl(path):
         records += 1
-        for key in ("anchor_story", "similar_story", "dissimilar_story", "source"):
-            if key in r and key != "source":
+        for key in ("anchor_story", "similar_story", "dissimilar_story"):
+            if key in r:
                 texts.append(r.get(key, ""))
     stats = analyze_texts(texts)
     stats["num_records"] = records
     return stats
+
+
+def plot_token_length_hist(human_tokens, synth_tokens):
+    plt.figure(figsize=(8,5))
+    bins = range(0, max(max(human_tokens or [0]), max(synth_tokens or [0])) + 20, 10)
+    plt.hist(human_tokens, bins=bins, alpha=0.6, label='human')
+    plt.hist(synth_tokens, bins=bins, alpha=0.6, label='synthetic')
+    plt.xlabel('Tokens per text')
+    plt.ylabel('Count')
+    plt.title('Token length distribution (human vs synthetic)')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(OUT_DIR / 'token_length_hist.png')
+    # also save PDF in plots folder
+    plt.savefig(PLOT_DIR / 'token_length_hist.pdf')
+    plt.close()
+
+
+def plot_top_unigrams(name, items):
+    tokens = [t for t, _ in items]
+    counts = [c for _, c in items]
+    plt.figure(figsize=(10,4))
+    plt.bar(tokens[::-1], counts[::-1])
+    plt.xticks(rotation=45, ha='right')
+    plt.title(name)
+    plt.tight_layout()
+    filename_png = name.lower().replace(' ', '_') + '.png'
+    filename_pdf = name.lower().replace(' ', '_') + '.pdf'
+    plt.savefig(OUT_DIR / filename_png)
+    # save PDF into plots folder as requested
+    plt.savefig(PLOT_DIR / filename_pdf)
+    plt.close()
 
 
 def main():
@@ -157,11 +194,27 @@ def main():
     else:
         print("Synthetic file not found at", synth_file)
 
-    # print short terminal summary
     for k, v in outputs.items():
         print("---", k)
         for kk in ("count_texts", "vocab_size", "avg_tokens", "median_tokens"):
             print(f"{kk}: {v.get(kk)}")
+
+    if MATPLOTLIB_AVAILABLE:
+        print('Matplotlib available: generating plots...')
+        human_tokens = outputs.get('human', {}).get('tokens_per', [])
+        synth_tokens = outputs.get('synthetic', {}).get('tokens_per', [])
+        plot_token_length_hist(human_tokens, synth_tokens)
+
+        # top 20 unigrams
+        human_unis = outputs.get('human', {}).get('top_unigrams', [])[:20]
+        synth_unis = outputs.get('synthetic', {}).get('top_unigrams', [])[:20]
+        if human_unis:
+            plot_top_unigrams('human_top_unigrams', human_unis)
+        if synth_unis:
+            plot_top_unigrams('synthetic_top_unigrams', synth_unis)
+        print('Plots saved to', OUT_DIR)
+    else:
+        print('Matplotlib not available — install matplotlib to generate plots')
 
     print("Outputs written to:", OUT_DIR)
 
