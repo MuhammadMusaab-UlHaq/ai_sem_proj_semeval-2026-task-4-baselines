@@ -23,6 +23,21 @@ jobs:
       - name: Run analysis script
         run: |
           python assignment_1/assignment_1_compare.py
+      - name: Commit generated PDFs back to branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/assignment_1/plots/*.pdf || true
+          # if there are staged changes, commit and push them
+          if git diff --staged --quiet; then
+            echo "No PDFs generated or no changes to commit"
+          else
+            git commit -m "chore(ci): add generated assignment 1 plot PDFs"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
 
       - name: Upload plots (PDFs)
         uses: actions/upload-artifact@v4
