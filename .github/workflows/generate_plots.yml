@@ -1,0 +1,31 @@
+name: Generate Assignment 1 plots
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install matplotlib
+
+      - name: Run analysis script
+        run: |
+          python assignment_1/assignment_1_compare.py
+
+      - name: Upload plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: assignment-1-plots
+          path: reports/assignment_1/*.png
