@@ -1,0 +1,470 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\geometry{margin=1in}
+
+\title{Assignment 1: Comprehensive Data Analysis for SemEval-2026 Task 4\\
+\large Problem and Data Understanding}
+\author{
+Usman Amjad — Comparative Analysis \\
+Ahmed Hassan Raza — N-gram \& Vocabulary Analysis \\
+Abdul Mueed — Statistical Distribution Analysis \\
+Muhammad Musaab-Ul-Haq — Baseline Model \& Error Analysis
+}
+\date{November 17, 2025}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents a comprehensive analysis of the SemEval-2026 Task 4 datasets, combining multiple perspectives to understand the data characteristics, linguistic patterns, and baseline model performance. The team conducted: (1) comparative analysis between human-annotated and synthetic datasets, (2) n-gram frequency and vocabulary analysis, (3) statistical distribution analysis of story lengths and label balance, and (4) baseline TF-IDF model implementation with detailed error analysis. Our findings reveal key differences between human and synthetic data, identify common linguistic patterns, and highlight the challenges faced by simple similarity-based approaches.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+SemEval-2026 Task 4 focuses on story similarity judgment, where systems must determine which of two candidate stories is more similar to an anchor story. This assignment represents our team's initial exploration of the dataset, combining quantitative analysis, linguistic pattern extraction, and baseline model evaluation.
+
+\subsection{Team Contributions}
+\begin{itemize}
+    \item \textbf{Usman Amjad}: Developed comparative analysis framework for human vs. synthetic datasets
+    \item \textbf{Ahmed Hassan Raza}: Performed n-gram extraction and vocabulary richness analysis
+    \item \textbf{Abdul Mueed}: Analyzed statistical distributions of story lengths and label balance
+    \item \textbf{Muhammad Musaab-Ul-Haq}: Implemented TF-IDF baseline and conducted error analysis
+\end{itemize}
+
+\section{Datasets Overview}
+
+\subsection{Human-Annotated Dataset}
+The human development set (\texttt{dev\_track\_a.jsonl}) contains 200 story triplets (600 individual stories), where each entry includes:
+\begin{itemize}
+    \item An anchor story
+    \item Two candidate stories (text\_a and text\_b)
+    \item A binary label indicating which candidate is closer to the anchor
+\end{itemize}
+
+\subsection{Synthetic Dataset}
+The combined synthetic dataset (\texttt{combined\_synthetic\_for\_training.jsonl}) contains 7,191 texts generated from multiple model sources, providing:
+\begin{itemize}
+    \item Anchor stories
+    \item Similar stories (generated to be semantically close)
+    \item Dissimilar stories (generated to be semantically distant)
+\end{itemize}
+
+\section{Comparative Analysis (Usman Amjad)}
+
+\subsection{Methodology}
+We computed summary statistics comparing the human-annotated development dataset with the combined synthetic dataset. Analysis focused on:
+\begin{enumerate}
+    \item Dataset sizes and text counts
+    \item Token-level statistics (mean, median, standard deviation)
+    \item Vocabulary sizes (unique token types)
+    \item Top n-grams (unigrams, bigrams, trigrams)
+\end{enumerate}
+
+Tokenization used a simple word regex (\texttt{\textbackslash w+}) for consistency and portability.
+
+\subsection{Summary Statistics}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Dataset} & \textbf{\# Texts} & \textbf{Avg Tokens} & \textbf{Median Tokens} & \textbf{Vocab Size} \\
+\midrule
+Human dev & 400 & 123.28 & 122 & 7,094 \\
+Synthetic combined & 7,191 & 157.91 & 158 & 18,835 \\
+\bottomrule
+\end{tabular}
+\caption{Summary statistics for human and synthetic datasets.}
+\label{tab:summary}
+\end{table}
+
+\subsection{Key Observations}
+\begin{itemize}
+    \item The synthetic dataset is significantly larger (7,191 vs 400 texts)
+    \item Synthetic texts are longer on average (158 vs 123 tokens)
+    \item Vocabulary in synthetic data is 2.65× larger (18,835 vs 7,094 unique tokens)
+    \item Both datasets show similar median token counts, suggesting consistent story length conventions
+\end{itemize}
+
+\subsection{Top Unigrams Comparison}
+
+\begin{table}[h!]
+\centering
+\begin{subtable}{0.48\textwidth}
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Unigram} & \textbf{Count} \\
+\midrule
+the & 2,861 \\
+a & 1,780 \\
+to & 1,656 \\
+and & 1,512 \\
+of & 1,233 \\
+in & 951 \\
+is & 886 \\
+his & 828 \\
+he & 649 \\
+with & 560 \\
+\bottomrule
+\end{tabular}
+\caption{Human dev set}
+\end{subtable}
+\hfill
+\begin{subtable}{0.48\textwidth}
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Unigram} & \textbf{Count} \\
+\midrule
+the & 92,919 \\
+a & 52,562 \\
+to & 38,655 \\
+of & 33,426 \\
+and & 30,940 \\
+in & 18,345 \\
+s & 15,422 \\
+her & 13,154 \\
+as & 12,648 \\
+with & 11,647 \\
+\bottomrule
+\end{tabular}
+\caption{Synthetic combined}
+\end{subtable}
+\caption{Top 10 most frequent unigrams in both datasets.}
+\label{tab:unigrams}
+\end{table}
+
+\subsection{Visualizations}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{plots/human_top_unigrams.pdf}
+    \caption{Human dataset top unigrams}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{plots/synthetic_top_unigrams.pdf}
+    \caption{Synthetic dataset top unigrams}
+\end{subfigure}
+\caption{Top 20 unigram distributions (excluding stopwords).}
+\label{fig:unigrams}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{plots/token_length_hist.pdf}
+\caption{Token length distribution comparison between human and synthetic datasets.}
+\label{fig:token_dist}
+\end{figure}
+
+\section{N-gram and Vocabulary Analysis (Ahmed Hassan Raza)}
+
+\subsection{Methodology}
+Comprehensive textual analysis was performed on 600 stories from the human-annotated dataset:
+\begin{itemize}
+    \item Extracted unigrams, bigrams, and trigrams
+    \item Computed vocabulary statistics including Type-Token Ratio (TTR)
+    \item Analyzed rare word distribution (hapax legomena)
+    \item Generated frequency visualizations for top n-grams
+\end{itemize}
+
+Technologies: Python 3.9+, NLTK, Matplotlib, Seaborn
+
+\subsection{Vocabulary Statistics}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Total Stories Analyzed & 600 \\
+Total Tokens (Words) & 72,423 \\
+Vocabulary Size (Unique Words) & 9,615 \\
+Hapax Legomena & 4,415 (45.92\%) \\
+Type-Token Ratio (TTR) & 0.1328 \\
+Average Word Length & 7.08 characters \\
+\bottomrule
+\end{tabular}
+\caption{Vocabulary statistics for human-annotated dataset.}
+\label{tab:vocab}
+\end{table}
+
+\subsection{Key Findings}
+
+\subsubsection{Vocabulary Richness}
+The Type-Token Ratio of 0.1328 indicates good lexical variety, suggesting that stories use a diverse range of words rather than repetitive vocabulary. The vocabulary size of 9,615 unique words across 72,423 tokens demonstrates a rich linguistic landscape.
+
+\subsubsection{Rare Words Distribution}
+With 45.92\% of vocabulary consisting of hapax legomena (words appearing only once), the dataset exhibits:
+\begin{itemize}
+    \item High topic and theme diversity across stories
+    \item Potential challenges for ML models in handling rare word generalization
+    \item Need for robust word embedding or subword tokenization strategies
+\end{itemize}
+
+\subsection{N-gram Patterns}
+Analysis of top unigrams (after stopword removal) reveals that stories focus heavily on character-driven narratives with frequent references to:
+\begin{itemize}
+    \item Human subjects: ``man'', ``woman'', ``father'', ``mother''
+    \item Quantifiers and descriptors: ``one'', ``new'', ``young''
+    \item Temporal and spatial references: ``time'', ``life'', ``world''
+\end{itemize}
+
+\subsection{Visualizations}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{../plots/ahmed_unigrams_frequency.png}
+    \caption{Top 20 unigrams}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{../plots/ahmed_bigrams_frequency.png}
+    \caption{Top 20 bigrams}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\textwidth]{../plots/ahmed_trigrams_frequency.png}
+    \caption{Top 20 trigrams}
+\end{subfigure}
+\caption{N-gram frequency distributions for human-annotated dataset.}
+\label{fig:ngrams_ahmed}
+\end{figure}
+
+\section{Statistical Distribution Analysis (Abdul Mueed)}
+
+\subsection{Methodology}
+Statistical analysis focused on understanding the structural characteristics of stories:
+\begin{enumerate}
+    \item Token count distribution across anchor, text\_a, and text\_b
+    \item Sentence count distribution across all story types
+    \item Label balance analysis (text\_a\_is\_closer)
+\end{enumerate}
+
+Tools: Python, Pandas, Matplotlib, Seaborn, NLTK
+
+\subsection{Story Length Distributions}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{../plots/abdul_mueed_story_length_tokens_dist.png}
+    \caption{Token count distribution}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{../plots/abdul_mueed_story_length_sentences_dist.png}
+    \caption{Sentence count distribution}
+\end{subfigure}
+\caption{Distribution of story lengths across anchor text, text\_a, and text\_b.}
+\label{fig:story_lengths}
+\end{figure}
+
+\subsection{Label Balance}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../plots/abdul_mueed_ab_label_balance.png}
+\caption{Distribution of text\_a\_is\_closer labels in the development set.}
+\label{fig:label_balance}
+\end{figure}
+
+\subsection{Key Observations}
+\begin{itemize}
+    \item Story lengths (in tokens) show similar distributions across anchor, text\_a, and text\_b
+    \item Most stories contain between 100-150 tokens
+    \item Sentence counts cluster around 5-8 sentences per story
+    \item Label distribution appears relatively balanced between text\_a and text\_b being closer
+\end{itemize}
+
+\section{Baseline Model and Error Analysis (Muhammad Musaab-Ul-Haq)}
+
+\subsection{TF-IDF Baseline Model}
+
+\subsubsection{Methodology}
+A simple TF-IDF based similarity model was implemented as a baseline:
+\begin{enumerate}
+    \item Transform all texts into TF-IDF vectors
+    \item Compute cosine similarity between anchor and each candidate (text\_a, text\_b)
+    \item Predict the candidate with higher similarity as closer to anchor
+\end{enumerate}
+
+\subsubsection{Performance}
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Baseline Accuracy & 52.50\% \\
+Random Baseline & 50.00\% \\
+Improvement over Random & 2.50\% \\
+\bottomrule
+\end{tabular}
+\caption{TF-IDF baseline model performance on dev set.}
+\label{tab:baseline_perf}
+\end{table}
+
+The baseline achieves only marginally better than random performance, indicating that simple lexical similarity is insufficient for this task.
+
+\subsection{Error Analysis}
+
+Detailed analysis of failure cases revealed systematic patterns in model errors. The following taxonomy categorizes the primary failure modes:
+
+\subsubsection{Error Categories}
+
+\begin{enumerate}
+    \item \textbf{Abstract Concept Blindness} (6 cases): Model fails to recognize abstract themes like psychological torment, exploitation of vulnerability, or legacy of family history. Instead focuses on surface-level keyword matches.
+    
+    \item \textbf{Keyword Trap (Setting)} (7 cases): Model is misled by setting-related vocabulary (geography, professions, cultural references) while missing the actual narrative substance.
+    
+    \item \textbf{Outcome-Negation Blindness} (1 case): Model cannot distinguish between stories with similar setups but opposite outcomes (tragedy vs. happy ending).
+\end{enumerate}
+
+\subsubsection{Representative Failure Cases}
+
+\textbf{Case 22 — Abstract Concept Blindness}
+\begin{itemize}
+    \item \textbf{Ground Truth}: Text B is closer (both feature protagonist with compromised perception being exploited)
+    \item \textbf{Model Prediction}: Text A (medical keywords: ``amnesia'', ``hospital'')
+    \item \textbf{Why it Failed}: Latched onto concrete medical terms, missed abstract theme of psychological manipulation
+\end{itemize}
+
+\textbf{Case 97 — Keyword Trap (Setting)}
+\begin{itemize}
+    \item \textbf{Ground Truth}: Text B is closer (both about confronting family member's past consequences)
+    \item \textbf{Model Prediction}: Text A (shared socio-economic vocabulary)
+    \item \textbf{Why it Failed}: Overwhelmed by setting keywords (``middle-class'', ``suburb'', ``college'') while missing narrative core
+\end{itemize}
+
+\textbf{Case 18 — Outcome-Negation Blindness}
+\begin{itemize}
+    \item \textbf{Ground Truth}: Text A is closer (both end in tragedy)
+    \item \textbf{Model Prediction}: Text B (similar romantic setup)
+    \item \textbf{Why it Failed}: Saw setup similarity but couldn't distinguish opposite endings (suicide vs. happy)
+\end{itemize}
+
+\subsection{Implications for Model Development}
+
+The error analysis reveals that successful models must:
+\begin{enumerate}
+    \item Capture abstract narrative themes beyond surface-level keywords
+    \item Distinguish between setting vocabulary and core narrative elements
+    \item Model story outcomes and emotional arcs, not just initial setups
+    \item Handle semantic similarity at the discourse level rather than lexical level
+\end{enumerate}
+
+\section{Discussion and Insights}
+
+\subsection{Dataset Characteristics}
+Our combined analysis reveals several key characteristics:
+\begin{itemize}
+    \item \textbf{Lexical Diversity}: Both datasets show rich vocabulary with high Type-Token Ratios
+    \item \textbf{Length Consistency}: Stories maintain consistent length distributions (100-150 tokens typical)
+    \item \textbf{Balanced Labels}: Development set shows good balance in similarity judgments
+    \item \textbf{Synthetic Expansion}: Synthetic data successfully expands the training corpus while maintaining structural similarity to human data
+\end{itemize}
+
+\subsection{Challenges Identified}
+\begin{enumerate}
+    \item \textbf{Lexical Similarity Insufficient}: Simple TF-IDF baseline near-random performance shows that keyword matching fails
+    \item \textbf{Abstract Understanding Required}: Many stories share similar settings/keywords but differ in abstract themes
+    \item \textbf{Narrative Arc Modeling}: Models must capture story progression and outcomes, not just elements
+    \item \textbf{Rare Word Handling}: 45.92\% hapax legomena requires robust generalization strategies
+\end{enumerate}
+
+\subsection{Recommendations for Future Work}
+\begin{itemize}
+    \item Implement contextual embeddings (BERT, RoBERTa) to capture semantic similarity
+    \item Develop hierarchical models that separate setting from narrative substance
+    \item Incorporate narrative structure models (beginning-middle-end analysis)
+    \item Explore contrastive learning approaches using synthetic similar/dissimilar pairs
+    \item Consider ensemble methods combining lexical, semantic, and structural features
+\end{itemize}
+
+\section{Reproducibility}
+
+\subsection{Code and Data}
+All analysis code and outputs are available in the repository:
+\begin{itemize}
+    \item \textbf{Comparative Analysis}: \texttt{assignment\_1/assignment\_1\_compare.py}
+    \item \textbf{N-gram Analysis}: \texttt{src/Assignment\_1\_ahmed\_ngram\_analysis.py}
+    \item \textbf{Statistical Analysis}: \texttt{src/Assignment\_1\_abdul\_mueed\_analysis\_stats.py}
+    \item \textbf{Baseline Model}: \texttt{src/Assignment\_1\_Musaab.ipynb}
+\end{itemize}
+
+\subsection{Generated Outputs}
+\begin{itemize}
+    \item CSV summaries: \texttt{reports/assignment\_1/*.csv}
+    \item Plots: \texttt{plots/} and \texttt{reports/assignment\_1/plots/}
+    \item Error analysis: \texttt{reports/A1\_Musaab\_error\_analysis\_of\_results\_of\_simple\_models.md}
+\end{itemize}
+
+\subsection{Running the Analyses}
+From the repository root:
+\begin{verbatim}
+# Comparative analysis
+python assignment_1/assignment_1_compare.py
+
+# N-gram analysis
+python src/Assignment_1_ahmed_ngram_analysis.py
+
+# Statistical analysis
+python src/Assignment_1_abdul_mueed_analysis_stats.py
+
+# Baseline model (requires Jupyter)
+jupyter notebook src/Assignment_1_Musaab.ipynb
+\end{verbatim}
+
+\section{Conclusion}
+
+This comprehensive analysis of SemEval-2026 Task 4 data has provided valuable insights into:
+\begin{enumerate}
+    \item The characteristics and differences between human and synthetic story datasets
+    \item Linguistic patterns and vocabulary distributions in narrative texts
+    \item Statistical properties of story lengths and label distributions
+    \item Fundamental limitations of lexical similarity approaches
+\end{enumerate}
+
+The near-random performance of the TF-IDF baseline (52.50\% accuracy) confirms that this task requires deep semantic understanding beyond surface-level keyword matching. Our error analysis reveals that successful systems must model abstract narrative themes, distinguish setting from substance, and capture story outcomes and emotional arcs.
+
+These findings will guide our team's approach to developing more sophisticated models that leverage contextual embeddings, narrative structure analysis, and contrastive learning strategies.
+
+\section*{Team Member Contributions Summary}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Member} & \textbf{Contribution} \\
+\midrule
+Usman Amjad & Comparative analysis framework, token statistics, vocabulary comparison, visualization generation \\
+Ahmed Hassan Raza & N-gram extraction (uni/bi/trigrams), vocabulary statistics (TTR, hapax legomena), frequency visualizations \\
+Abdul Mueed & Statistical distribution analysis, token/sentence count plots, label balance visualization \\
+Muhammad Musaab-Ul-Haq & TF-IDF baseline implementation, comprehensive error analysis with 14 detailed failure case studies \\
+\bottomrule
+\end{tabular}
+\caption{Individual team member contributions to Assignment 1.}
+\label{tab:contributions}
+\end{table}
+
+\vfill
+\noindent\textit{Report compiled: November 17, 2025}\\
+\textit{Course: CS-272 Artificial Intelligence}\\
+\textit{Assignment 1: Problem and Data Understanding}
+
+\end{document}
