@@ -9,6 +9,9 @@
 \usepackage{float}
 \geometry{margin=1in}
 
+% Set graphics path to repository root for image includes
+\graphicspath{{../../}}
+
 \title{Assignment 1: Comprehensive Data Analysis for SemEval-2026 Task 4\\
 \large Problem and Data Understanding}
 \author{
@@ -150,12 +153,12 @@ with & 11,647 \\
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/human_top_unigrams.pdf}
+    \includegraphics[width=\textwidth]{reports/assignment_1/plots/human_top_unigrams.pdf}
     \caption{Human dataset top unigrams}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/synthetic_top_unigrams.pdf}
+    \includegraphics[width=\textwidth]{reports/assignment_1/plots/synthetic_top_unigrams.pdf}
     \caption{Synthetic dataset top unigrams}
 \end{subfigure}
 \caption{Top 20 unigram distributions (excluding stopwords).}
@@ -164,7 +167,7 @@ with & 11,647 \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{plots/token_length_hist.pdf}
+\includegraphics[width=0.8\textwidth]{reports/assignment_1/plots/token_length_hist.pdf}
 \caption{Token length distribution comparison between human and synthetic datasets.}
 \label{fig:token_dist}
 \end{figure}
@@ -228,17 +231,17 @@ Analysis of top unigrams (after stopword removal) reveals that stories focus hea
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{../plots/ahmed_unigrams_frequency.png}
+    \includegraphics[width=\textwidth]{plots/ahmed_unigrams_frequency.png}
     \caption{Top 20 unigrams}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{../plots/ahmed_bigrams_frequency.png}
+    \includegraphics[width=\textwidth]{plots/ahmed_bigrams_frequency.png}
     \caption{Top 20 bigrams}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.32\textwidth}
-    \includegraphics[width=\textwidth]{../plots/ahmed_trigrams_frequency.png}
+    \includegraphics[width=\textwidth]{plots/ahmed_trigrams_frequency.png}
     \caption{Top 20 trigrams}
 \end{subfigure}
 \caption{N-gram frequency distributions for human-annotated dataset.}
@@ -262,12 +265,12 @@ Tools: Python, Pandas, Matplotlib, Seaborn, NLTK
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{../plots/abdul_mueed_story_length_tokens_dist.png}
+    \includegraphics[width=\textwidth]{plots/abdul_mueed_story_length_tokens_dist.png}
     \caption{Token count distribution}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{../plots/abdul_mueed_story_length_sentences_dist.png}
+    \includegraphics[width=\textwidth]{plots/abdul_mueed_story_length_sentences_dist.png}
     \caption{Sentence count distribution}
 \end{subfigure}
 \caption{Distribution of story lengths across anchor text, text\_a, and text\_b.}
@@ -278,7 +281,7 @@ Tools: Python, Pandas, Matplotlib, Seaborn, NLTK
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{../plots/abdul_mueed_ab_label_balance.png}
+\includegraphics[width=0.5\textwidth]{plots/abdul_mueed_ab_label_balance.png}
 \caption{Distribution of text\_a\_is\_closer labels in the development set.}
 \label{fig:label_balance}
 \end{figure}
