@@ -1,0 +1,6 @@
+metric,value
+count_texts,400
+avg_tokens,123.275
+median_tokens,122.0
+stdev_tokens,49.93575247255217
+vocab_size,7094
