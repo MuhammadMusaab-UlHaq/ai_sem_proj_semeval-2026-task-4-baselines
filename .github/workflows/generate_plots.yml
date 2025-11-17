@@ -2,6 +2,9 @@ name: Generate Assignment 1 plots
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - usman-assignment-1
 
 jobs:
   build:
