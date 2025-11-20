@@ -29,7 +29,7 @@ except Exception:
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
-OUT_DIR = ROOT / "reports" / "assignment_1"
+OUT_DIR = ROOT / "reports" / "assignment_1_usman_amjad"
 PLOT_DIR = OUT_DIR / "plots"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 PLOT_DIR.mkdir(parents=True, exist_ok=True)

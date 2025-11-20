@@ -1,2 +1,48 @@
+# Windows system files
 desktop.ini
+Thumbs.db
+*.lnk
+
+# Virtual environment
 venv/
+env/
+.env
+*.pyc
+__pycache__/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files (uncomment if needed)
+# *.csv
+# *.jsonl
+# *.json
+
+# Output and temporary files
+*.log
+*.tmp
+*.bak
+output/
+temp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
